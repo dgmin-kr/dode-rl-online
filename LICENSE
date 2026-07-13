@@ -1,0 +1,64 @@
+Non-Commercial Research Software License
+
+Copyright (c) 2026 Donggyu Min
+
+Permission is granted, free of charge, to use, copy, modify, and distribute
+the software and associated documentation files in this repository for
+non-commercial research, educational, and evaluation purposes, subject to the
+following conditions:
+
+1. The above copyright notice and this license notice must be included in all
+   copies or substantial portions of the software.
+2. Any modified version must clearly indicate that changes were made.
+3. The software may not be used, copied, modified, merged, published,
+   distributed, sublicensed, sold, or otherwise exploited for commercial
+   purposes without prior written permission from the copyright holder.
+
+Commercial purposes include, without limitation, use in or for a product,
+service, consulting engagement, paid research contract, revenue-generating
+workflow, internal business operation, or any activity primarily intended for
+commercial advantage or monetary compensation.
+
+No patent license is granted under this license, except to the extent strictly
+necessary to use the software for non-commercial research, educational, and
+evaluation purposes. All patent rights, including rights under Korean patents
+and patent applications, are reserved by the patent owner.
+
+For commercial licensing inquiries, contact the copyright holder.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Data attribution notice
+-----------------------
+
+The files under data/ are derived from:
+
+Victorian Department of Transport and Planning Open Data, "Traffic Signal
+Volume Data", available from the Victorian Government / data.gov.au open data
+catalogues.
+
+The source Traffic Signal Volume Data resources used for this project are
+listed by the public data catalogue under the Creative Commons Attribution 3.0
+Australia licence. The derived train/test NPZ files are provided for research
+reproducibility and should be used with attribution to the original publisher.
+
+This software license does not supersede the source data licence or any
+attribution requirements attached to the original Traffic Signal Volume Data.
+
+Topology attribution notice
+---------------------------
+
+The checked Melbourne road-network topology metadata includes information
+derived from OpenStreetMap.
+
+OpenStreetMap data is available under the Open Data Commons Open Database
+License (ODbL). Required attribution: (c) OpenStreetMap contributors.
+
+This software license does not supersede the ODbL terms or attribution
+requirements attached to OpenStreetMap-derived data.

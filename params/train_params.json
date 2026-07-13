@@ -1,0 +1,45 @@
+{
+  "rl": {
+    "algorithm": "LFPG-RL",
+    "num_envs": 4,
+    "use_subproc": false,
+    "test_max_scenarios": 30,
+    "env_params": {
+      "use_finalized_observation_rewards": true,
+      "include_target_observation_state": true
+    }
+  },
+  "ppo_params": {
+    "learning_rate": 0.0003,
+    "gamma": 0.99,
+    "gae_lambda": 0.95,
+    "ent_coef": 0.0002,
+    "clip_range": 0.1,
+    "n_steps": 24,
+    "batch_size": 96,
+    "n_epochs": 4,
+    "vf_coef": 0.5,
+    "max_grad_norm": 0.5,
+    "target_kl": 0.03,
+    "bound_policy_mean": true,
+    "initial_policy_mean": 0.0,
+    "initial_policy_std": 0.35,
+    "policy_kwargs": {
+      "net_arch": [
+        256,
+        256
+      ]
+    },
+    "verbose": 0
+  },
+  "lfpg_rl": {
+    "lfp_a_enabled": true,
+    "lfp_a_advantage_weight": 1.35,
+    "lfp_a_decay_schedule": "constant",
+    "lfp_a_decay_rollouts": 0,
+    "lfp_a_advantage_clip": 1.4
+  },
+  "ppo_baseline": {
+    "lfp_a_enabled": false
+  }
+}

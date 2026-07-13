@@ -1,0 +1,63 @@
+{
+  "lfpg_gd": {
+    "algorithm": "LFPG-GD",
+    "lfpg_gd_params": {
+      "initial_step_size": 0.8,
+      "min_step_size": 0.05,
+      "max_step_size": 2.0,
+      "step_growth": 1.03,
+      "step_shrink": 0.5,
+      "max_line_search_steps": 4,
+      "warm_start": "zero"
+    }
+  },
+  "w_spsa": {
+    "algorithm": "WSPSA",
+    "w_spsa_params": {
+      "warm_start": "zero",
+      "a": 2.0,
+      "c": 0.04,
+      "A": 4.0,
+      "alpha": 0.602,
+      "gamma": 0.101,
+      "correlation_threshold": 0.0,
+      "binary_weights": false
+    }
+  },
+  "lfpg_kf": {
+    "algorithm": "LFPG-KF",
+    "kf_params": {
+      "warm_start": "previous",
+      "transition_alpha": 1.0,
+      "max_cycles": null,
+      "ensemble_size": 12,
+      "process_noise_scale": 0.3,
+      "process_noise_floor": 0.25,
+      "observation_noise_scale": 0.12,
+      "observation_noise_floor": 0.05,
+      "inflation": 1.02,
+      "ridge": 0.003,
+      "candidate_count": 2,
+      "lfpg_step_size": 0.8,
+      "lfpg_step_shrink": 0.5,
+      "lfpg_candidate_count": 2,
+      "lfpg_gradient_threshold": 1e-12
+    }
+  },
+  "kf": {
+    "algorithm": "KF",
+    "kf_params": {
+      "warm_start": "previous",
+      "transition_alpha": 1.0,
+      "max_cycles": null,
+      "ensemble_size": 12,
+      "process_noise_scale": 0.3,
+      "process_noise_floor": 0.25,
+      "observation_noise_scale": 0.12,
+      "observation_noise_floor": 0.05,
+      "inflation": 1.02,
+      "ridge": 0.003,
+      "candidate_count": 2
+    }
+  }
+}

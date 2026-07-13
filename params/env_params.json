@@ -1,0 +1,29 @@
+{
+  "common": {
+    "env": {
+      "action_high": 30.0
+    },
+    "dnl": {
+      "max_paths_per_od": 4,
+      "due_max_iterations": 30,
+      "due_tolerance": 0.001,
+      "clearance_steps": 4,
+      "external_time_step_minutes": 15.0,
+      "internal_time_step_minutes": 1.0,
+      "route_choice_mode": "duo",
+      "stochastic_logit_scale": 0.5,
+      "sample_route_choices": true,
+      "route_choice_sampling_unit": 1.0,
+      "random_seed": null,
+      "akcelik_alpha": 0.25,
+      "akcelik_j": 0.8,
+      "akcelik_period_minutes": 15.0,
+      "use_parallel_kernels": "auto",
+      "numba_threads": 1,
+      "progress_logging": false
+    }
+  },
+  "networks": {
+    "melbourne_scats": {}
+  }
+}

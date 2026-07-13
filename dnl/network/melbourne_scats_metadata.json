@@ -1,0 +1,907 @@
+{
+  "schema_version": 1,
+  "network_name": "melbourne_scats",
+  "description": "Minimal public runtime topology for the Melbourne SCATS DNL network.",
+  "tables": {
+    "nodes": [
+      {
+        "node_id": 1,
+        "lon": 145.0100153,
+        "lat": -37.81968365
+      },
+      {
+        "node_id": 2,
+        "lon": 145.0100312,
+        "lat": -37.8114455
+      },
+      {
+        "node_id": 3,
+        "lon": 145.0100695,
+        "lat": -37.8339582
+      },
+      {
+        "node_id": 4,
+        "lon": 145.0105373,
+        "lat": -37.80278245
+      },
+      {
+        "node_id": 5,
+        "lon": 145.0163630333,
+        "lat": -37.8201120667
+      },
+      {
+        "node_id": 6,
+        "lon": 145.0235148,
+        "lat": -37.8131304
+      },
+      {
+        "node_id": 7,
+        "lon": 145.0251803375,
+        "lat": -37.7881010625
+      },
+      {
+        "node_id": 8,
+        "lon": 145.02552594,
+        "lat": -37.82713518
+      },
+      {
+        "node_id": 9,
+        "lon": 145.026374,
+        "lat": -37.8215532
+      },
+      {
+        "node_id": 10,
+        "lon": 145.0278896,
+        "lat": -37.813644
+      },
+      {
+        "node_id": 11,
+        "lon": 145.02898656,
+        "lat": -37.80735042
+      },
+      {
+        "node_id": 12,
+        "lon": 145.031858275,
+        "lat": -37.793118575
+      },
+      {
+        "node_id": 13,
+        "lon": 145.0327766,
+        "lat": -37.8368627
+      },
+      {
+        "node_id": 14,
+        "lon": 145.0342207,
+        "lat": -37.8287314
+      },
+      {
+        "node_id": 15,
+        "lon": 145.0353531,
+        "lat": -37.822601
+      },
+      {
+        "node_id": 16,
+        "lon": 145.0368341,
+        "lat": -37.8146899
+      },
+      {
+        "node_id": 17,
+        "lon": 145.0380739,
+        "lat": -37.80814435
+      },
+      {
+        "node_id": 18,
+        "lon": 145.0436599,
+        "lat": -37.8298463
+      },
+      {
+        "node_id": 19,
+        "lon": 145.0448048,
+        "lat": -37.8237308
+      },
+      {
+        "node_id": 20,
+        "lon": 145.0458198,
+        "lat": -37.8198814667
+      },
+      {
+        "node_id": 21,
+        "lon": 145.046414,
+        "lat": -37.8158138
+      },
+      {
+        "node_id": 22,
+        "lon": 145.0464975,
+        "lat": -37.8369954
+      },
+      {
+        "node_id": 23,
+        "lon": 145.0476901,
+        "lat": -37.8303126
+      },
+      {
+        "node_id": 24,
+        "lon": 145.050609,
+        "lat": -37.7993501
+      },
+      {
+        "node_id": 25,
+        "lon": 145.0560344,
+        "lat": -37.8169653
+      },
+      {
+        "node_id": 26,
+        "lon": 145.0561909333,
+        "lat": -37.8357599333
+      },
+      {
+        "node_id": 27,
+        "lon": 145.056357,
+        "lat": -37.8098498
+      },
+      {
+        "node_id": 28,
+        "lon": 145.0566457,
+        "lat": -37.8211588
+      },
+      {
+        "node_id": 29,
+        "lon": 145.0567034,
+        "lat": -37.8000642
+      },
+      {
+        "node_id": 30,
+        "lon": 145.0567426,
+        "lat": -37.7966571
+      },
+      {
+        "node_id": 31,
+        "lon": 145.0568309333,
+        "lat": -37.8311337333
+      }
+    ],
+    "links": [
+      {
+        "link_id": "melbourne_primary_001",
+        "from_node": 2,
+        "to_node": 6,
+        "highway": "primary",
+        "ref": "32",
+        "name": "Victoria Street / Barkers Road",
+        "length_km": 1.199223347,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 4800.0,
+        "reverse_capacity_per_hour": 4800.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 4800.0
+      },
+      {
+        "link_id": "melbourne_primary_002",
+        "from_node": 5,
+        "to_node": 1,
+        "highway": "primary",
+        "ref": "30",
+        "name": "Bridge Road",
+        "length_km": 0.5596014936,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 9600.0,
+        "reverse_capacity_per_hour": 0.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 7200.0
+      },
+      {
+        "link_id": "melbourne_primary_003",
+        "from_node": 5,
+        "to_node": 6,
+        "highway": "primary",
+        "ref": "36;2",
+        "name": "Church Street",
+        "length_km": 0.9986726373,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 4800.0,
+        "reverse_capacity_per_hour": 4800.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 4800.0
+      },
+      {
+        "link_id": "melbourne_primary_004",
+        "from_node": 5,
+        "to_node": 9,
+        "highway": "primary",
+        "ref": "30",
+        "name": "Burwood Road",
+        "length_km": 0.8942545784,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 4800.0,
+        "reverse_capacity_per_hour": 4800.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 4800.0
+      },
+      {
+        "link_id": "melbourne_primary_005",
+        "from_node": 8,
+        "to_node": 3,
+        "highway": "primary",
+        "ref": "20;21;25;2",
+        "name": "Wallen Road / Swan Street / Alexandra Avenue / Madden Grove",
+        "length_km": 1.7573841273,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_006",
+        "from_node": 8,
+        "to_node": 9,
+        "highway": "primary",
+        "ref": "21",
+        "name": "Power Street",
+        "length_km": 0.6251422338,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_007",
+        "from_node": 8,
+        "to_node": 14,
+        "highway": "primary",
+        "ref": "20",
+        "name": "Riversdale Road",
+        "length_km": 0.7840000399,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_008",
+        "from_node": 9,
+        "to_node": 10,
+        "highway": "primary",
+        "ref": "21",
+        "name": "Power Street",
+        "length_km": 0.8894852424,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_009",
+        "from_node": 10,
+        "to_node": 6,
+        "highway": "primary",
+        "ref": "32",
+        "name": "Barkers Road",
+        "length_km": 0.3885368731,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 4800.0,
+        "reverse_capacity_per_hour": 4800.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 4800.0
+      },
+      {
+        "link_id": "melbourne_primary_010",
+        "from_node": 10,
+        "to_node": 11,
+        "highway": "primary",
+        "ref": "21",
+        "name": "Denmark Street",
+        "length_km": 0.7064189684,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_011",
+        "from_node": 10,
+        "to_node": 16,
+        "highway": "primary",
+        "ref": "32",
+        "name": "Barkers Road",
+        "length_km": 0.7942997428,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 4800.0,
+        "reverse_capacity_per_hour": 4800.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 4800.0
+      },
+      {
+        "link_id": "melbourne_primary_012",
+        "from_node": 11,
+        "to_node": 4,
+        "highway": "primary",
+        "ref": "34;2",
+        "name": "Studley Park Road",
+        "length_km": 1.6985889362,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 4800.0,
+        "reverse_capacity_per_hour": 4800.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 4800.0
+      },
+      {
+        "link_id": "melbourne_primary_013",
+        "from_node": 11,
+        "to_node": 6,
+        "highway": "primary",
+        "ref": "36;2",
+        "name": "High Street South",
+        "length_km": 0.8025787243,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 4800.0,
+        "reverse_capacity_per_hour": 4800.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 4800.0
+      },
+      {
+        "link_id": "melbourne_primary_014",
+        "from_node": 12,
+        "to_node": 7,
+        "highway": "primary",
+        "ref": "21",
+        "name": "Chandler Highway",
+        "length_km": 0.8097039065,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 9600.0,
+        "reverse_capacity_per_hour": 0.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 7200.0
+      },
+      {
+        "link_id": "melbourne_primary_015",
+        "from_node": 12,
+        "to_node": 11,
+        "highway": "primary",
+        "ref": "21",
+        "name": "Princess Street",
+        "length_km": 1.6224848093,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_016",
+        "from_node": 14,
+        "to_node": 13,
+        "highway": "primary",
+        "ref": "19",
+        "name": "Glenferrie Road",
+        "length_km": 0.9130168432,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 4800.0,
+        "reverse_capacity_per_hour": 4800.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 4800.0
+      },
+      {
+        "link_id": "melbourne_primary_017",
+        "from_node": 15,
+        "to_node": 9,
+        "highway": "primary",
+        "ref": "30",
+        "name": "Burwood Road",
+        "length_km": 0.7972429141,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 4800.0,
+        "reverse_capacity_per_hour": 4800.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 4800.0
+      },
+      {
+        "link_id": "melbourne_primary_018",
+        "from_node": 15,
+        "to_node": 14,
+        "highway": "primary",
+        "ref": "19",
+        "name": "Glenferrie Road",
+        "length_km": 0.6888891328,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_019",
+        "from_node": 15,
+        "to_node": 16,
+        "highway": "primary",
+        "ref": "19",
+        "name": "Glenferrie Road",
+        "length_km": 0.8892459835,
+        "speed_kph": 40.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_020",
+        "from_node": 15,
+        "to_node": 19,
+        "highway": "primary",
+        "ref": "30",
+        "name": "Burwood Road",
+        "length_km": 0.8396427172,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 4800.0,
+        "reverse_capacity_per_hour": 4800.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 4800.0
+      },
+      {
+        "link_id": "melbourne_primary_021",
+        "from_node": 16,
+        "to_node": 21,
+        "highway": "primary",
+        "ref": "32",
+        "name": "Barkers Road",
+        "length_km": 0.8507722396,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_022",
+        "from_node": 17,
+        "to_node": 11,
+        "highway": "primary",
+        "ref": "34",
+        "name": "Cotham Road",
+        "length_km": 0.8032084647,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 4800.0,
+        "reverse_capacity_per_hour": 4800.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 4800.0
+      },
+      {
+        "link_id": "melbourne_primary_023",
+        "from_node": 17,
+        "to_node": 16,
+        "highway": "primary",
+        "ref": "19",
+        "name": "Glenferrie Road",
+        "length_km": 0.7359368178,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_024",
+        "from_node": 17,
+        "to_node": 27,
+        "highway": "primary",
+        "ref": "34",
+        "name": "Cotham Road",
+        "length_km": 1.617338424,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 4800.0,
+        "reverse_capacity_per_hour": 4800.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 4800.0
+      },
+      {
+        "link_id": "melbourne_primary_025",
+        "from_node": 18,
+        "to_node": 14,
+        "highway": "primary",
+        "ref": "20",
+        "name": "Riversdale Road",
+        "length_km": 0.8382333629,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_026",
+        "from_node": 18,
+        "to_node": 19,
+        "highway": "primary",
+        "ref": "",
+        "name": "Auburn Road",
+        "length_km": 0.6874130005,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_027",
+        "from_node": 20,
+        "to_node": 19,
+        "highway": "primary",
+        "ref": "",
+        "name": "Auburn Road",
+        "length_km": 0.4372131036,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_028",
+        "from_node": 20,
+        "to_node": 21,
+        "highway": "primary",
+        "ref": "",
+        "name": "Auburn Road",
+        "length_km": 0.4553061124,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_029",
+        "from_node": 20,
+        "to_node": 28,
+        "highway": "primary",
+        "ref": "",
+        "name": "Rathmines Road",
+        "length_km": 0.9614627618,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_030",
+        "from_node": 23,
+        "to_node": 18,
+        "highway": "primary",
+        "ref": "20",
+        "name": "Riversdale Road",
+        "length_km": 0.3577344442,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_031",
+        "from_node": 23,
+        "to_node": 22,
+        "highway": "primary",
+        "ref": "",
+        "name": "Tooronga Road",
+        "length_km": 0.7504488904,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_032",
+        "from_node": 23,
+        "to_node": 31,
+        "highway": "primary",
+        "ref": "20",
+        "name": "Riversdale Road",
+        "length_km": 0.807967478,
+        "speed_kph": 40.0,
+        "forward_capacity_per_hour": 4800.0,
+        "reverse_capacity_per_hour": 4800.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 4800.0
+      },
+      {
+        "link_id": "melbourne_primary_033",
+        "from_node": 24,
+        "to_node": 11,
+        "highway": "primary",
+        "ref": "36",
+        "name": "High Street",
+        "length_km": 2.0976667465,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 4800.0,
+        "reverse_capacity_per_hour": 4800.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 4800.0
+      },
+      {
+        "link_id": "melbourne_primary_034",
+        "from_node": 24,
+        "to_node": 12,
+        "highway": "primary",
+        "ref": "",
+        "name": "Valerie Street / Asquith Street / Earl Street",
+        "length_km": 1.7974263492,
+        "speed_kph": 57.8469690183,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_035",
+        "from_node": 24,
+        "to_node": 29,
+        "highway": "primary",
+        "ref": "",
+        "name": "Harp Road",
+        "length_km": 0.5413197882,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 4800.0,
+        "reverse_capacity_per_hour": 4800.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 4800.0
+      },
+      {
+        "link_id": "melbourne_primary_036",
+        "from_node": 24,
+        "to_node": 30,
+        "highway": "primary",
+        "ref": "36",
+        "name": "High Street",
+        "length_km": 0.6165266383,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 4800.0,
+        "reverse_capacity_per_hour": 4800.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 4800.0
+      },
+      {
+        "link_id": "melbourne_primary_037",
+        "from_node": 25,
+        "to_node": 21,
+        "highway": "primary",
+        "ref": "32",
+        "name": "Barkers Road",
+        "length_km": 0.8547533293,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_038",
+        "from_node": 26,
+        "to_node": 31,
+        "highway": "primary",
+        "ref": "17",
+        "name": "Burke Road",
+        "length_km": 0.5174721625,
+        "speed_kph": 40.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      },
+      {
+        "link_id": "melbourne_primary_039",
+        "from_node": 31,
+        "to_node": 19,
+        "highway": "primary",
+        "ref": "30",
+        "name": "Camberwell Road",
+        "length_km": 1.3955277131,
+        "speed_kph": 60.0,
+        "forward_capacity_per_hour": 2400.0,
+        "reverse_capacity_per_hour": 2400.0,
+        "capacity_cap_per_hour": 7200.0,
+        "capacity_per_hour": 2400.0
+      }
+    ],
+    "od_zones": [
+      {
+        "od_zone_id": 0,
+        "node_id": 1,
+        "lon": 145.0100153,
+        "lat": -37.81968365
+      },
+      {
+        "od_zone_id": 1,
+        "node_id": 2,
+        "lon": 145.0100312,
+        "lat": -37.8114455
+      },
+      {
+        "od_zone_id": 2,
+        "node_id": 3,
+        "lon": 145.0100695,
+        "lat": -37.8339582
+      },
+      {
+        "od_zone_id": 3,
+        "node_id": 4,
+        "lon": 145.0105373,
+        "lat": -37.80278245
+      },
+      {
+        "od_zone_id": 4,
+        "node_id": 5,
+        "lon": 145.0163630333,
+        "lat": -37.8201120667
+      },
+      {
+        "od_zone_id": 5,
+        "node_id": 6,
+        "lon": 145.0235148,
+        "lat": -37.8131304
+      },
+      {
+        "od_zone_id": 6,
+        "node_id": 7,
+        "lon": 145.0251803375,
+        "lat": -37.7881010625
+      },
+      {
+        "od_zone_id": 7,
+        "node_id": 8,
+        "lon": 145.02552594,
+        "lat": -37.82713518
+      },
+      {
+        "od_zone_id": 8,
+        "node_id": 9,
+        "lon": 145.026374,
+        "lat": -37.8215532
+      },
+      {
+        "od_zone_id": 9,
+        "node_id": 10,
+        "lon": 145.0278896,
+        "lat": -37.813644
+      },
+      {
+        "od_zone_id": 10,
+        "node_id": 11,
+        "lon": 145.02898656,
+        "lat": -37.80735042
+      },
+      {
+        "od_zone_id": 11,
+        "node_id": 12,
+        "lon": 145.031858275,
+        "lat": -37.793118575
+      },
+      {
+        "od_zone_id": 12,
+        "node_id": 13,
+        "lon": 145.0327766,
+        "lat": -37.8368627
+      },
+      {
+        "od_zone_id": 13,
+        "node_id": 14,
+        "lon": 145.0342207,
+        "lat": -37.8287314
+      },
+      {
+        "od_zone_id": 14,
+        "node_id": 15,
+        "lon": 145.0353531,
+        "lat": -37.822601
+      },
+      {
+        "od_zone_id": 15,
+        "node_id": 16,
+        "lon": 145.0368341,
+        "lat": -37.8146899
+      },
+      {
+        "od_zone_id": 16,
+        "node_id": 17,
+        "lon": 145.0380739,
+        "lat": -37.80814435
+      },
+      {
+        "od_zone_id": 17,
+        "node_id": 18,
+        "lon": 145.0436599,
+        "lat": -37.8298463
+      },
+      {
+        "od_zone_id": 18,
+        "node_id": 19,
+        "lon": 145.0448048,
+        "lat": -37.8237308
+      },
+      {
+        "od_zone_id": 19,
+        "node_id": 20,
+        "lon": 145.0458198,
+        "lat": -37.8198814667
+      },
+      {
+        "od_zone_id": 20,
+        "node_id": 21,
+        "lon": 145.046414,
+        "lat": -37.8158138
+      },
+      {
+        "od_zone_id": 21,
+        "node_id": 22,
+        "lon": 145.0464975,
+        "lat": -37.8369954
+      },
+      {
+        "od_zone_id": 22,
+        "node_id": 23,
+        "lon": 145.0476901,
+        "lat": -37.8303126
+      },
+      {
+        "od_zone_id": 23,
+        "node_id": 24,
+        "lon": 145.050609,
+        "lat": -37.7993501
+      },
+      {
+        "od_zone_id": 24,
+        "node_id": 25,
+        "lon": 145.0560344,
+        "lat": -37.8169653
+      },
+      {
+        "od_zone_id": 25,
+        "node_id": 26,
+        "lon": 145.0561909333,
+        "lat": -37.8357599333
+      },
+      {
+        "od_zone_id": 26,
+        "node_id": 27,
+        "lon": 145.056357,
+        "lat": -37.8098498
+      },
+      {
+        "od_zone_id": 27,
+        "node_id": 28,
+        "lon": 145.0566457,
+        "lat": -37.8211588
+      },
+      {
+        "od_zone_id": 28,
+        "node_id": 29,
+        "lon": 145.0567034,
+        "lat": -37.8000642
+      },
+      {
+        "od_zone_id": 29,
+        "node_id": 30,
+        "lon": 145.0567426,
+        "lat": -37.7966571
+      },
+      {
+        "od_zone_id": 30,
+        "node_id": 31,
+        "lon": 145.0568309333,
+        "lat": -37.8311337333
+      }
+    ]
+  },
+  "summary": {
+    "topology_nodes": 31,
+    "source_undirected_links": 39,
+    "od_centroids": 31,
+    "directed_links": 78,
+    "od_pairs": 930
+  }
+}
