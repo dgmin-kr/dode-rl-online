@@ -11,6 +11,10 @@ online dynamic origin-destination (OD) matrix estimation (DODE) framework that
 calibrates time-dependent OD demand to reproduce observed link-flow
 trajectories.
 
+The paper is available at https://arxiv.org/abs/2608.30317.
+- Min, D., & Kim, D. K. (2026). Online Estimation of Dynamic Origin-Destination Matrices Using Reinforcement Learning with Link-Flow Propagation Guidance. arXiv preprint arXiv:2608.30317.
+
+
 ## Overview
 
 - ❓ **What is the problem?** RL can reduce the online computational burden of DODE
