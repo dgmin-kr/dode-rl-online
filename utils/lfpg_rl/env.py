@@ -4,7 +4,6 @@ import os
 import sys
 import time
 from pathlib import Path
-from types import SimpleNamespace
 from typing import Any, Optional
 
 import gymnasium as gym
@@ -19,7 +18,6 @@ from .config import Config
 from dnl.main import build_default_model
 from dnl.ltm import ForwardDUOSimulator
 from dnl.model import AssignmentResult
-from utils.assignment_guidance import solve_assignment_gradient_step
 from utils import ScenarioDataset
 
 
@@ -35,8 +33,10 @@ class DNLTrainingEnv(gym.Env):
         fixed_scenario_id: str | None = None,
         fixed_simulation_seed: int | None = None,
         seed: Optional[int] = None,
+        record_temporal_inflows: bool | None = None,
     ) -> None:
         super().__init__()
+        self.record_temporal_inflows = record_temporal_inflows
 
         self.scenario_dataset = (
             ScenarioDataset(scenario_dataset_dir) if scenario_dataset_dir is not None else None
@@ -78,31 +78,22 @@ class DNLTrainingEnv(gym.Env):
         self.capacity = np.array([link.capacity for link in self.model.network.links], dtype=np.float32)
         self.storage = np.array([link.jam_storage for link in self.model.network.links], dtype=np.float32)
         self.free_flow_steps = self.model.loader.free_flow_steps.astype(np.float32)
-        self.flow_scale = np.maximum(self.capacity, 1.0)
+        input_multiplier = float(Config.RL_RUNTIME_PARAMS.get("flow_scale_multiplier", 1.0))
+        reward_multiplier = float(Config.RL_RUNTIME_PARAMS.get("reward_flow_scale_multiplier", 1.0))
+        if not np.isfinite([input_multiplier, reward_multiplier]).all() or min(input_multiplier, reward_multiplier) <= 0:
+            raise ValueError("Input and reward flow-scale multipliers must be finite and positive.")
+        internal_flow_scale = np.maximum(self.capacity, 1.0)
+        self.flow_scale = internal_flow_scale * input_multiplier
+        self.reward_flow_scale = internal_flow_scale * reward_multiplier
         self.storage_scale = np.maximum(self.storage, 1.0)
         self.observation_scale = self._build_observation_scale()
-        self.coarse_residual_policy_enabled = bool(
-            Config.RL_RUNTIME_PARAMS.get("coarse_residual_policy_enabled", False)
-        )
-        self.include_coarse_od_state = bool(
-            self.coarse_residual_policy_enabled
-            and Config.RL_RUNTIME_PARAMS.get("include_coarse_od_state", True)
-        )
-        self.residual_action_high = float(
-            Config.RL_RUNTIME_PARAMS.get(
-                "residual_action_high",
-                max((self.action_high - self.action_low) * 0.15, 1.0),
-            )
-        )
-        if self.residual_action_high <= 0.0:
-            raise ValueError("residual_action_high must be positive when coarse residual policy is enabled.")
-        self.policy_action_low = -self.residual_action_high if self.coarse_residual_policy_enabled else self.action_low
-        self.policy_action_high = self.residual_action_high if self.coarse_residual_policy_enabled else self.action_high
+        self.reward_observation_scale = self.reward_flow_scale[self.observed_link_indices].copy()
+        self.policy_action_low = self.action_low
+        self.policy_action_high = self.action_high
         self.include_target_observation_state = bool(
             Config.RL_RUNTIME_PARAMS.get("include_target_observation_state", False)
         )
         target_observation_state_dim = self.num_observations if self.include_target_observation_state else 0
-        coarse_state_dim = self.num_od if self.include_coarse_od_state else 0
 
         self.action_space = spaces.Box(
             low=np.full(self.num_od, self.policy_action_low, dtype=np.float32),
@@ -113,7 +104,7 @@ class DNLTrainingEnv(gym.Env):
         self.observation_space = spaces.Box(
             low=0.0,
             high=np.inf,
-            shape=(1 + 3 * self.num_links + target_observation_state_dim + coarse_state_dim,),
+            shape=(1 + 3 * self.num_links + target_observation_state_dim,),
             dtype=np.float32,
         )
 
@@ -124,11 +115,6 @@ class DNLTrainingEnv(gym.Env):
         self.last_speed_index = np.ones(self.num_links, dtype=np.float32)
         self.last_result: AssignmentResult | None = None
         self.duo_runtime: ForwardDUOSimulator | None = None
-        self.coarse_od_matrix = np.zeros((self.num_steps, self.num_od), dtype=np.float32)
-        self.policy_residual_matrix = np.zeros((self.num_steps, self.num_od), dtype=np.float32)
-        self.current_coarse_action = np.zeros(self.num_od, dtype=np.float32)
-        self.current_coarse_info: dict[str, Any] = {}
-        self._coarse_action_step_index: int | None = None
         self.episode_reward = 0.0
         self.completed_episode_payload: dict[str, np.ndarray] | None = None
         self.current_scenario_id: str | None = None
@@ -204,11 +190,6 @@ class DNLTrainingEnv(gym.Env):
             f"runtime_init_s={time.perf_counter() - duo_start:.3f}"
         )
         self.episode_reward = 0.0
-        self.coarse_od_matrix = np.zeros((self.num_steps, self.num_od), dtype=np.float32)
-        self.policy_residual_matrix = np.zeros((self.num_steps, self.num_od), dtype=np.float32)
-        self.current_coarse_action = np.zeros(self.num_od, dtype=np.float32)
-        self.current_coarse_info = {}
-        self._coarse_action_step_index = None
 
         return self._build_observation(), {
             "num_steps": self.num_steps,
@@ -223,18 +204,9 @@ class DNLTrainingEnv(gym.Env):
     def step(self, action: np.ndarray):
         policy_action = np.asarray(action, dtype=np.float32).reshape(self.num_od)
         policy_action = np.clip(policy_action, self.policy_action_low, self.policy_action_high)
-        if self.coarse_residual_policy_enabled:
-            coarse_action = self._get_current_coarse_action()
-            residual_action = policy_action.astype(np.float32, copy=True)
-            action = np.clip(coarse_action + policy_action, self.action_low, self.action_high).astype(np.float32)
-        else:
-            coarse_action = np.zeros(self.num_od, dtype=np.float32)
-            residual_action = np.zeros(self.num_od, dtype=np.float32)
-            action = np.clip(policy_action, self.action_low, self.action_high).astype(np.float32)
+        action = np.clip(policy_action, self.action_low, self.action_high).astype(np.float32)
 
         self.estimated_od_matrix[self.current_step] = action
-        self.coarse_od_matrix[self.current_step] = coarse_action
-        self.policy_residual_matrix[self.current_step] = residual_action
         step_index = self.current_step
         dnl_start = time.perf_counter()
         self._log_progress(
@@ -243,8 +215,6 @@ class DNLTrainingEnv(gym.Env):
             f"action_sum={float(np.sum(action)):.3f} "
             f"action_mean={float(np.mean(action)):.3f} "
             f"action_max={float(np.max(action)):.3f} "
-            f"coarse_sum={float(np.sum(coarse_action)):.3f} "
-            f"residual_sum={float(np.sum(residual_action)):.3f} "
             f"action_nonzero={int(np.count_nonzero(action > 0.0))}/{self.num_od} "
             f"target_observed_sum={self._target_measurement_sum(step_index):.3f}"
         )
@@ -309,13 +279,11 @@ class DNLTrainingEnv(gym.Env):
                     "episode_mae": episode_mae,
                     "episode_normalized_mse": episode_normalized_mse,
                     "estimated_od_matrix": self.estimated_od_matrix.copy(),
-                    "coarse_od_matrix": self.coarse_od_matrix.copy(),
-                    "policy_residual_matrix": self.policy_residual_matrix.copy(),
                     "simulated_link_flows": self.last_result.link_inflows.copy(),
                     "simulated_observations": self._compute_observations(self.last_result.link_inflows),
                     "target_observations": self.target_observations.copy(),
                     "observation_labels": self.observation_labels,
-                    "observation_scale": self.observation_scale.copy(),
+                    "observation_scale": self.reward_observation_scale.copy(),
                     "od_labels": self.od_labels,
                     "link_labels": self.link_labels,
                     "route_choice_model": self.last_result.route_choice_model,
@@ -326,7 +294,6 @@ class DNLTrainingEnv(gym.Env):
                     "simulation_seed": self.current_simulation_seed,
                     "num_observed_links": int(self.observed_link_indices.shape[0]),
                     "observed_link_indices": self.observed_link_indices.copy(),
-                    "coarse_residual_policy_enabled": bool(self.coarse_residual_policy_enabled),
                     "policy_action_low": float(self.policy_action_low),
                     "policy_action_high": float(self.policy_action_high),
                 }
@@ -335,10 +302,10 @@ class DNLTrainingEnv(gym.Env):
             self._log_progress("payload-store-start")
             self.completed_episode_payload = {
                 "temporal_link_inflows": self.last_result.temporal_link_inflows,
-                "flow_scale": self.flow_scale.copy(),
+                "flow_scale": self.reward_flow_scale.copy(),
                 "observed_link_indices": self.observed_link_indices.copy(),
                 "target_observations": self.target_observations.copy(),
-                "observation_scale": self.observation_scale.copy(),
+                "observation_scale": self.reward_observation_scale.copy(),
             }
             self._log_progress(f"payload-store-done payload_s={time.perf_counter() - payload_start:.3f}")
 
@@ -348,11 +315,9 @@ class DNLTrainingEnv(gym.Env):
         if self.current_step >= self.num_steps:
             target_measurement_norm = np.zeros(self.num_observations, dtype=np.float32)
             time_feature = np.array([1.0], dtype=np.float32)
-            coarse_action = np.zeros(self.num_od, dtype=np.float32)
         else:
             target_measurement_norm = self._build_target_measurement_state(self.current_step)
             time_feature = np.array([self.current_step / max(self.num_steps - 1, 1)], dtype=np.float32)
-            coarse_action = self._get_current_coarse_action()
 
         simulated_flow_norm = self.last_link_flows / self.flow_scale
         occupancy_norm = self.last_occupancies / self.storage_scale
@@ -367,53 +332,8 @@ class DNLTrainingEnv(gym.Env):
                 self.last_speed_index.astype(np.float32),
             ]
         )
-        if self.include_coarse_od_state:
-            coarse_action_norm = coarse_action / max(self.action_high, 1.0)
-            observation_parts.append(coarse_action_norm.astype(np.float32))
         return np.concatenate(tuple(observation_parts), dtype=np.float32)
 
-    def _get_current_coarse_action(self) -> np.ndarray:
-        if not self.coarse_residual_policy_enabled or self.current_step >= self.num_steps:
-            return np.zeros(self.num_od, dtype=np.float32)
-        if self._coarse_action_step_index == int(self.current_step):
-            return self.current_coarse_action.copy()
-
-        params = dict(Config.RL_RUNTIME_PARAMS.get("coarse_solver_params", {}))
-        params.setdefault("max_iterations", 2)
-        params.setdefault("max_line_search_steps", 2)
-        params.setdefault("warm_start", "previous")
-        feedback_enabled = bool(Config.RL_RUNTIME_PARAMS.get("coarse_solver_feedback_enabled", True))
-        target_dataset = SimpleNamespace(
-            target_observations=np.asarray(self.target_observations, dtype=np.float32),
-            observed_link_indices=np.asarray(self.observed_link_indices, dtype=np.int64),
-            num_steps=int(self.num_steps),
-        )
-        context = SimpleNamespace(
-            model=self.model,
-            target_dataset=target_dataset,
-            scenario_id=self.current_scenario_id,
-            step_index=int(self.current_step),
-            estimated_od_matrix=np.asarray(self.estimated_od_matrix, dtype=np.float64),
-            flow_scale=np.asarray(self.flow_scale, dtype=np.float64),
-            locked_runtime=self.duo_runtime,
-            action_low=float(self.action_low),
-            action_high=float(self.action_high),
-            rng=self.np_random,
-            runtime_exceeded=lambda: False,
-        )
-        coarse_action, info = solve_assignment_gradient_step(
-            context,
-            params,
-            feedback_enabled=feedback_enabled,
-        )
-        self.current_coarse_action = np.clip(
-            np.asarray(coarse_action, dtype=np.float32).reshape(self.num_od),
-            self.action_low,
-            self.action_high,
-        )
-        self.current_coarse_info = dict(info)
-        self._coarse_action_step_index = int(self.current_step)
-        return self.current_coarse_action.copy()
 
     def _compute_speed_index(self, link_travel_times_row: np.ndarray) -> np.ndarray:
         link_travel_times_row = np.asarray(link_travel_times_row, dtype=np.float32)
@@ -445,7 +365,7 @@ class DNLTrainingEnv(gym.Env):
         target = self.target_observations[step_index]
         simulated = self._compute_observations(self.last_link_flows)
         error = simulated - target
-        normalized_error = error / self.observation_scale
+        normalized_error = error / self.reward_observation_scale
         return (
             float(np.mean(error ** 2)),
             float(np.mean(np.abs(error))),
@@ -456,7 +376,7 @@ class DNLTrainingEnv(gym.Env):
         target = self.target_observations
         simulated = self._compute_observations(link_inflows)
         error = simulated - target
-        normalized_error = error / self.observation_scale[None, :]
+        normalized_error = error / self.reward_observation_scale[None, :]
         return (
             float(np.mean(error ** 2)),
             float(np.mean(np.abs(error))),
@@ -464,11 +384,10 @@ class DNLTrainingEnv(gym.Env):
         )
 
     def _needs_temporal_link_inflows(self) -> bool:
+        if self.record_temporal_inflows is not None:
+            return bool(self.record_temporal_inflows)
         params = getattr(Config, "RL_RUNTIME_PARAMS", {})
-        return (
-            bool(params.get("lfp_a_enabled", True))
-            or bool(params.get("coarse_residual_policy_enabled", False))
-        )
+        return bool(params.get("lfp_a_enabled", True))
 
     def _log_progress(self, message: str) -> None:
         if not bool(getattr(Config, "DNL_PROGRESS_LOGGING", False)):
@@ -492,7 +411,7 @@ class DNLTrainingEnv(gym.Env):
         return payload
 
     def get_flow_scale(self) -> np.ndarray:
-        return self.flow_scale.copy()
+        return self.reward_flow_scale.copy()
 
     def close(self):
         return None

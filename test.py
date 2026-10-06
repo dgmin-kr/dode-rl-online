@@ -33,7 +33,6 @@ WINDOWS_NEW_PROCESS_GROUP = (
     getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0) if os.name == "nt" else 0
 )
 
-# This project is fixed to the final refined Melbourne SCATS network.
 DEFAULT_NETWORK_NAME = "melbourne_scats"
 
 # Optional explicit RL checkpoints to evaluate.

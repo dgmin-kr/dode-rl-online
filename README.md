@@ -19,22 +19,22 @@ The paper is available at https://arxiv.org/abs/2608.30317.
 
 - ❓ **What is the problem?** RL can reduce the online computational burden of DODE
   by replacing iterative updates with a policy forward pass, but the policy is
-  trained offline and must generalize to varying target link-flow trajectories
+  trained offline and must generalise to varying target link-flow trajectories
   at deployment.
   
 - 🎯 **Why is standard RL limited?** In online DODE, each
   target trajectory defines the link-flow error used in the reward. As a result,
   scalar rewards and step-level advantages can evaluate an OD demand vector as a
   whole, but they do not explain which OD-time components caused downstream
-  residuals. This hinders the generalization of policies for online DODE.
+  residuals. This hinders the generalisation of policies for online DODE.
   
 - 🧭 **What does LFPG provide?** Link-Flow Propagation Guidance (LFPG) uses completed DNL rollouts to record how
   each OD-time demand component contributes to downstream link flows, then
   combines those propagated contributions with link-flow residuals.
   
-- 🤖 **How is LFPG used in RL?** LFPG-RL keeps PPO as the policy-learning
-  backbone and adds an LFPG shaping term so actor updates are informed by
-  realized propagation patterns and local reward sensitivities.
+- 🤖 **How is LFPG used in RL?** LFPG-RL uses component-wise PPO likelihood ratios and adds an LFPG shaping
+  term based on realised propagation patterns and local reward sensitivities.
+  The RL baseline uses the same update with zero LFPG weight.
   
 - ⚡ **What is the outcome?** Given a new target link-flow trajectory, LFPG-RL can
   calibrate OD demand almost instantly with a single policy forward pass,
@@ -58,7 +58,7 @@ the repository root:
 python -m pip install -r requirements.txt
 ```
 
-## Public Contents
+## Repository contents
 
 | Path | Purpose |
 | --- | --- |
@@ -67,8 +67,9 @@ python -m pip install -r requirements.txt
 | `dnl/` | Link transmission model, DNL driver, kernels, path logic, and network registry. |
 | `dnl/network/melbourne_scats_metadata.json` | Topology metadata used by the Melbourne network builder. |
 | `data/train_dataset.npz` | Train split. |
+| `data/validation_dataset.npz` | Validation split. |
 | `data/test_dataset.npz` | Test split. |
-| `methods/` | Method entry points for policy learning, online optimization, and filtering baselines. |
+| `methods/` | Method entry points for policy learning, online optimisation, and filtering baselines. |
 | `params/` | DNL, RL, and baseline parameters. |
 | `utils/` | Dataset loading, result IO, LFPG-RL runner, baseline support, and shared helpers. |
 
@@ -91,7 +92,8 @@ The active case study is `melbourne_scats`.
 
 | Split | Days | Target-observation shape | File |
 | --- | ---: | --- | --- |
-| Train | 220 | `(220, 24, 27)` | `data/train_dataset.npz` |
+| Train | 190 | `(190, 24, 27)` | `data/train_dataset.npz` |
+| Validation | 30 | `(30, 24, 27)` | `data/validation_dataset.npz` |
 | Test | 30 | `(30, 24, 27)` | `data/test_dataset.npz` |
 
 The public split files store detector-observation targets, not observed OD
@@ -99,8 +101,11 @@ matrices. The action/estimation space is the 930-dimensional directed OD pair
 space, while evaluation compares simulated link flows only on the 27 observed
 detector-linked rows.
 
-The current split uses 250 total daily episodes, with 220 train days and 30
-held-out test days.
+The 250 daily episodes are split chronologically into 190 training days,
+30 validation days, and 30 test days.
+
+Scenario IDs use `day_YYYYMMDD`. Each NPZ contains observations,
+scenario IDs, simulation seeds, and network metadata.
 
 The split NPZ files are derived from Victorian Department of Transport and
 Planning Open Data, "Traffic Signal Volume Data", which is sourced from SCATS
@@ -113,13 +118,13 @@ catalogue under Creative Commons Attribution 3.0 Australia:
 
 See `LICENSE` for the software license and data attribution notice.
 
-The checked Melbourne topology metadata includes road-network information
+The Melbourne topology metadata includes road-network information
 derived from OpenStreetMap. OpenStreetMap data is licensed under the Open Data
 Commons Open Database License (ODbL).
 
 ## Training
 
-Default training launches LFPG-RL and PPO for trials `201 202 203 204 205`.
+Default training launches LFPG-RL and RL for trials `201 202 203 204 205`.
 
 ```powershell
 python train.py
@@ -173,10 +178,8 @@ Parallel evaluation writes each completed scenario immediately under:
 methods/<method>/results/Melbourne SCATS_test/<scenario_id>/
 ```
 
-After all 30 scenarios for a method finish, `test.py` refreshes only the
-method-level `test_summary.json` and `config_snapshot.json`. Numeric outputs
-remain scenario-folder based; root-level aggregate `test_outputs.npz` files are
-not part of the active output contract.
+Each scenario folder contains numerical results. Method-level summaries and
+configuration files are written after all scenarios finish.
 
 To evaluate trained RL policies, set the checkpoint paths at the top of
 `test.py`:
@@ -186,10 +189,9 @@ LFPG_RL_POLICY = r"...\final_model.pt"
 RL_POLICY = r"...\final_model.pt"
 ```
 
-Then run the default evaluation or select the RL methods explicitly:
+Then select the RL methods:
 
 ```powershell
-python test.py
 python test.py --methods lfpg_rl ppo_baseline
 ```
 
@@ -207,9 +209,9 @@ split.
 | Method key | Folder | Family |
 | --- | --- | --- |
 | `lfpg_rl` | `methods/1-1. LFPG-RL/` | Policy learning with LFPG guidance |
-| `ppo_baseline` | `methods/1-2. PPO/` | Policy learning baseline |
-| `lfpg_gd` | `methods/2-1. LFPG-GD/` | LFPG-guided online optimization |
-| `w_spsa` | `methods/2-2. W-SPSA/` | Online optimization baseline |
+| `ppo_baseline` | `methods/1-2. PPO/` | RL baseline without LFPG |
+| `lfpg_gd` | `methods/2-1. LFPG-GD/` | LFPG-guided online optimisation |
+| `w_spsa` | `methods/2-2. W-SPSA/` | Online optimisation baseline |
 | `lfpg_kf` | `methods/3-1. LFPG-KF/` | LFPG-guided sequential filtering |
 | `kf` | `methods/3-2. KF/` | Sequential filtering baseline |
 
@@ -221,7 +223,7 @@ target row at each step, but not future target rows.
 Repository software is released for non-commercial research, educational, and
 evaluation purposes only. Commercial use requires prior written permission from
 the copyright holder, and patent rights are reserved except as stated in
-`LICENSE`. The train/test NPZ files under `data/` are derived from Victorian
+`LICENSE`. The train/validation/test NPZ files under `data/` are derived from Victorian
 Department of Transport and Planning Traffic Signal Volume Data and remain
 subject to the source data licence and attribution requirements. The Melbourne
 topology metadata includes OpenStreetMap-derived road-network data and remains

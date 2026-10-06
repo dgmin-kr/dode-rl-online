@@ -1,4 +1,4 @@
-"""Readers for per-scenario test outputs used by figure notebooks."""
+"""Read and summarise per-scenario evaluation results."""
 
 from __future__ import annotations
 

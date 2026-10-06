@@ -22,7 +22,6 @@ from utils import (
 PROJECT_DIR = Path(__file__).resolve().parent
 FORCE_KILL_WAIT_SECONDS = 10
 
-# This project is fixed to the final refined Melbourne SCATS network.
 DEFAULT_NETWORK_NAME = "melbourne_scats"
 
 
@@ -582,8 +581,7 @@ def main() -> None:
     )
     if len(sys.argv) == 1:
         print(
-            "[train] no command-line arguments supplied; Ctrl+F5 is running the launcher defaults. "
-            "Child training can be quiet during DNL rollouts, but progress messages will appear after updates.",
+            "[train] using default settings.",
             flush=True,
         )
     if scheduling_mode == "sequential":

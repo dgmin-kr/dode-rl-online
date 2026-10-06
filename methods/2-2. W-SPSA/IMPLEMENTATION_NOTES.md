@@ -1,16 +1,13 @@
-# W-SPSA Implementation Notes
+# W-SPSA implementation
 
-- baseline family:
-  - weighted simultaneous perturbation stochastic approximation
-- method name used in this project:
-  - `W-SPSA`
-- current adaptation:
-  - two-sided SPSA updates under the shared sequential step-lock protocol
-  - per-link measurement-error vector instead of a single scalar mismatch
-  - OD-specific correlation weights built from realized current-step OD-to-link influence
-  - weighted gradient estimate following the Lu et al. idea of replacing scalar aggregation with correlation-weighted measurement errors
-  - zero warm start under the shared optimizer protocol unless `warm_start` is explicitly changed
-  - the gain update is applied in raw OD units; the finite-difference denominator already contains the raw OD perturbation scale
-  - uses link-flow observations only, with no stored OD-demand labels or explicit OD prior injection
+This implementation applies weighted simultaneous perturbation stochastic approximation to sequential OD demand estimation.
 
-Because the project protocol is myopic step-lock calibration, this adaptation only uses the current measurement row rather than the full multi-interval objective used in the original paper. The weighted SPSA core, however, now follows the paper's main mechanism more closely than the earlier heuristic version.
+- Candidate demands are evaluated from copies of the current simulator state.
+- OD-specific weights are computed from current-step OD-to-link propagation and link-flow errors.
+- Two-sided perturbations estimate the search direction using the realised, bounded demand perturbation.
+- The gain update is applied in vehicle units.
+- Each update uses the current observed link-flow row, with earlier demand decisions fixed.
+
+Method settings are defined in `params/test_params.json`.
+
+Reference: L. Lu, Y. Xu, C. Antoniou, and M. Ben-Akiva (2015), "An enhanced SPSA algorithm for the calibration of dynamic traffic assignment models," Transportation Research Part C, 51, 149–166.

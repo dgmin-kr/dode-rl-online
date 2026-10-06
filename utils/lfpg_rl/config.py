@@ -138,8 +138,6 @@ class Config:
     DNL_NUMBA_THREADS: int | None = _DNL_SETTINGS["numba_threads"]
     DNL_PROGRESS_LOGGING: bool = _progress_logging_enabled(NETWORK_NAME, _DNL_SETTINGS)
 
-    # Melbourne SCATS uses 24 AM-peak 15-minute steps. Each environment step
-    # re-solves the DNL model, so conservative vectorization remains preferable.
     MAX_RUNTIME_SECONDS = _optional_int(_COMMON_SETTINGS, "max_runtime_seconds")
     # Internal safety cap used only when runtime-only mode is active.
     RUNTIME_ONLY_TOTAL_TIMESTEPS = 2_000_000_000
@@ -147,12 +145,6 @@ class Config:
     USE_SUBPROC = _optional_bool(_RL_SETTINGS, "use_subproc")
 
     ALGORITHM: str = str(_RL_SETTINGS["algorithm"])
-    # Tuned for a medium-horizon OD-estimation task:
-    # - gamma remains fairly high for 36-step delayed assignment
-    # - one full episode per rollout for cleaner advantage estimates
-    # - modest entropy bonus to keep exploration alive without destabilizing
-    #   the inverse problem
-    # - a moderate number of subprocess environments to balance throughput and cost
     PPO_PARAMS: dict[str, Any] = dict(_PPO_SETTINGS)
     RL_ENV_PARAMS: dict[str, Any] = dict(_RL_SETTINGS.get("env_params", {}))
     LFPG_PARAMS: dict[str, Any] = dict(_EXPERIMENT_SETTINGS)

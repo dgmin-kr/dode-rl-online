@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "network_name": "melbourne_scats",
-  "description": "Minimal public runtime topology for the Melbourne SCATS DNL network.",
+  "description": "Melbourne SCATS network topology.",
   "tables": {
     "nodes": [
       {

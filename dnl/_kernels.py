@@ -38,6 +38,38 @@ def get_active_numba_threads() -> int:
 
 
 @njit(cache=True)
+def compact_queue_indices(queue_head, cohort_next, active_count, cohort_amount=None):
+    """Pack reachable queue records without changing their within-link order."""
+    order = np.empty(active_count, dtype=np.int64)
+    heads = np.full(queue_head.shape[0], -1, dtype=np.int32)
+    tails = np.full(queue_head.shape[0], -1, dtype=np.int32)
+    links = np.full(active_count, -1, dtype=np.int32)
+    cursor = 0
+    visited = 0
+    for link in range(queue_head.shape[0]):
+        index = queue_head[link]
+        while index != -1:
+            if visited >= active_count:
+                raise ValueError("Queue active count is smaller than the reachable records.")
+            visited += 1
+            following = cohort_next[index]
+            # Only exactly exhausted records are omitted; no positive mass,
+            # however small, is discarded by storage compaction.
+            if cohort_amount is None or cohort_amount[index] != 0.0:
+                order[cursor] = index
+                if heads[link] == -1:
+                    heads[link] = cursor
+                else:
+                    links[tails[link]] = cursor
+                tails[link] = cursor
+                cursor += 1
+            index = following
+    if visited != active_count:
+        raise ValueError("Queue active count differs from the reachable records.")
+    return order[:cursor], heads, tails, links[:cursor]
+
+
+@njit(cache=True)
 def _akcelik_effective_delay(
     flow: float,
     capacity: float,

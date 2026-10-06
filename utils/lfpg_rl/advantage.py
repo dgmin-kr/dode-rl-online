@@ -28,7 +28,7 @@ def extract_link_flow_propagation_guidance_components(
     For each action a_{t,od}, the returned information accumulates future reward
     sensitivities over all links reached by that exact propagated cohort volume.
 
-    The volume-weighted signal is used by LFP-A.
+    LFPG-RL uses the volume-weighted signal to shape the policy update.
     """
     temporal_link_inflows = np.asarray(temporal_link_inflows, dtype=np.float32)
     simulated_link_flows = np.asarray(simulated_link_flows, dtype=np.float32)
@@ -133,6 +133,3 @@ def extract_link_flow_propagation_guidance(
     )
     return guidance.link_flow_propagation_guidance, guidance.stats
 
-
-# Compatibility alias for local guidance-target imports.
-link_flow_propagation_guidance_advantage_targets = extract_link_flow_propagation_guidance

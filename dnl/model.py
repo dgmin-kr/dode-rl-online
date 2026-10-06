@@ -66,6 +66,10 @@ class ExternalTimeStepDUORuntime:
         copied.internal_runtime = self.internal_runtime.copy_for_single_step_candidate(
             temporal_step_index=int(self.current_step)
         )
+        # Common random numbers across candidates, independent of the committed run.
+        candidate_seed = getattr(self, "candidate_random_seed", None)
+        if candidate_seed is not None and copied.internal_runtime.rng is not None:
+            copied.internal_runtime.rng = np.random.default_rng(candidate_seed)
         copied.external_demand_horizon = int(self.external_demand_horizon)
         copied.current_step = int(self.current_step)
         copied.link_inflows = np.zeros_like(self.link_inflows)

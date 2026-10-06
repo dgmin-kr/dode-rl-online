@@ -279,6 +279,7 @@ def run_step_locked_scenario(
     simulation_seed: int,
     step_solver: Callable[[StepLockContext], tuple[np.ndarray, dict[str, Any]]],
     step_runtime_seconds: float | None = None,
+    independent_search_randomness: bool = True,
 ) -> SequentialScenarioRun:
     started_at = time.perf_counter()
     model = build_model_from_config_with_seed(config, random_seed=int(simulation_seed))
@@ -299,6 +300,10 @@ def run_step_locked_scenario(
     step_rows: list[dict[str, Any]] = []
     for step_index in range(target_dataset.num_steps):
         step_started_at = time.perf_counter()
+        if independent_search_randomness and locked_runtime is not None:
+            locked_runtime.candidate_random_seed = int(
+                np.random.SeedSequence([int(simulation_seed), step_index, 7919]).generate_state(1)[0]
+            )
         step_deadline_time = None
         if resolved_step_runtime_seconds is not None:
             step_deadline_time = step_started_at + max(float(resolved_step_runtime_seconds), 0.0)
@@ -399,6 +404,9 @@ def run_step_locked_scenario(
                     step_deadline_time is not None and float(time.perf_counter()) >= float(step_deadline_time)
                 ),
                 **dict(solver_info),
+                "step_elapsed_seconds": float(time.perf_counter() - step_started_at),
+                "committed_dnl_steps": 1,
+                "independent_search_randomness": bool(independent_search_randomness),
             }
         )
 

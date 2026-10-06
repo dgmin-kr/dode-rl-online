@@ -10,6 +10,7 @@ from ._kernels import (
     accumulate_downstream_demand_queue_kernel,
     apply_moves_queue_kernel,
     configure_numba_threads,
+    compact_queue_indices,
     count_source_loads_queue_kernel,
     departures_from_share_row_kernel,
     downstream_acceptance_kernel,
@@ -550,6 +551,33 @@ class LinkTransmissionModel:
         if required <= workspace.queue_capacity:
             return
 
+        # Reuse exhausted records before growing storage. No active vehicle
+        # group is merged, dropped, or reordered. Exactly zero-sized records
+        # are omitted, including exhausted records inside a queue.
+        if (
+            getattr(self, "compact_queues", True)
+            and workspace.queue_next_free > 65536
+        ):
+            active = int(workspace.queue_active_nodes)
+            order, heads, tails, links = compact_queue_indices(
+                workspace.queue_head, workspace.cohort_next, active, workspace.cohort_amount
+            )
+            active = int(order.shape[0])
+            capacity = max(1024, 2 * active, active + int(additional_slots))
+            for name in ("cohort_path_id", "cohort_path_pos", "cohort_departure_time",
+                         "cohort_entry_time", "cohort_amount"):
+                old = getattr(workspace, name)
+                packed = np.zeros(capacity, dtype=old.dtype)
+                packed[:active] = old[order]
+                setattr(workspace, name, packed)
+            workspace.cohort_next = np.full(capacity, -1, dtype=np.int32)
+            workspace.cohort_next[:active] = links
+            workspace.queue_head, workspace.queue_tail = heads, tails
+            workspace.queue_capacity = capacity
+            workspace.queue_next_free = active
+            workspace.queue_active_nodes = active
+            return
+
         new_capacity = max(required, workspace.queue_capacity * 2 if workspace.queue_capacity else 1024)
         def _grow_int_array(array: np.ndarray | None, fill_value: int = -1) -> np.ndarray:
             if array is None:
@@ -966,6 +994,7 @@ class LinkTransmissionModel:
                 return 0
 
         self._ensure_queue_capacity(workspace, 1)
+        tail_idx = int(workspace.queue_tail[link_id])
         idx = int(workspace.queue_next_free)
         workspace.cohort_next[idx] = -1
         workspace.cohort_path_id[idx] = int(path_id)

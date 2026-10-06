@@ -71,8 +71,7 @@ def _require_metadata(path: Path) -> None:
     if not path.exists():
         raise FileNotFoundError(
             f"Missing Melbourne SCATS topology metadata: {path}. "
-            "The public release should include this checked runtime topology file. "
-            "Regenerate it from the private raw-source pipeline before running this network."
+            "Place melbourne_scats_metadata.json in dnl/network/."
         )
 
 

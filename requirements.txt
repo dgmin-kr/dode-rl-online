@@ -1,13 +1,12 @@
-# Runtime dependencies for this project.
-# Install from the repository root with: python -m pip install -r requirements.txt
-gymnasium==1.0.0
-matplotlib==3.10.1
-networkx==3.4.2
-numba==0.65.1
-numpy==2.2.3
-pandas==2.2.3
-pillow==11.1.0
+# Python 3.12 dependencies.
+gymnasium==1.1.1
+matplotlib==3.9.2
+networkx==3.3
+numba==0.60.0
+numpy==1.26.4
+pandas==2.2.2
+pillow==10.4.0
 requests==2.32.3
-scipy==1.15.2
-stable-baselines3==2.7.1
-torch==2.6.0
+scipy==1.13.1
+stable-baselines3==2.6.0
+torch==2.7.1

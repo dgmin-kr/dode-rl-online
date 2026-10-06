@@ -1,4 +1,4 @@
-"""Dynamic-assignment gradient helpers shared by RL and baseline methods."""
+"""Dynamic-assignment gradient helpers for online estimation baselines."""
 
 from __future__ import annotations
 
@@ -27,9 +27,8 @@ def compute_assignment_gradient(
 ) -> np.ndarray:
     """Return the normalized-MSE gradient with respect to OD demand.
 
-    The only target is detector space:
+    The residual is evaluated at observed detector links:
     simulated_link_flows[:, observed_link_indices] - target_observations.
-    No full-link target tensor is used.
     """
 
     od_matrix = np.asarray(od_matrix, dtype=np.float64)

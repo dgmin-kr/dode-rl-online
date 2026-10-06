@@ -18,9 +18,7 @@ import gymnasium as gym
 import numpy as np
 import torch
 
-# The current dg_env TensorBoard install crashes while trying to import
-# TensorFlow during Stable-Baselines3 startup. Exposing this sentinel module
-# makes TensorBoard use its lightweight tensorflow_stub path instead.
+# Use TensorBoard's lightweight compatibility layer without importing TensorFlow.
 sys.modules.setdefault("tensorboard.compat.notf", types.ModuleType("tensorboard.compat.notf"))
 
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecMonitor
@@ -168,13 +166,14 @@ TRAIN_METRIC_FIELD_ORDER = [
     "max_temporal_mass",
     "policy_gradient_loss",
     "global_value_loss",
+    "gradient_norm_mean",
+    "gradient_norm_max",
     "entropy_loss",
     "approx_kl",
     "clip_fraction",
     "loss",
 ]
 _TRAIN_METRICS_CSV_LOGGING_FAILED = False
-_LFP_DIRECTION_DIAGNOSTIC_CSV_LOGGING_FAILED = False
 
 
 def _append_csv_rows(path: Path, fieldnames: list[str], rows: list[dict[str, Any]]) -> None:
@@ -547,8 +546,6 @@ def build_lfpg_test_step_rows(final_info: dict[str, Any]) -> tuple[dict[str, Any
     step_mse_values, step_mae_values, step_normalized_mse_values, _ = _step_metric_arrays_from_final_info(final_info)
 
     rewards = np.asarray(final_info.get("episode_rewards", []), dtype=np.float64)
-    coarse_od_matrix = np.asarray(final_info.get("coarse_od_matrix", []), dtype=np.float64)
-    policy_residual_matrix = np.asarray(final_info.get("policy_residual_matrix", []), dtype=np.float64)
     rows: list[dict[str, Any]] = []
     for step_index in range(simulated_link_flows.shape[0]):
         row = {
@@ -558,37 +555,8 @@ def build_lfpg_test_step_rows(final_info: dict[str, Any]) -> tuple[dict[str, Any
             "step_normalized_mse": float(step_normalized_mse_values[step_index]),
             "reward": float(rewards[step_index]) if step_index < rewards.size else float("nan"),
         }
-        if coarse_od_matrix.ndim == 2 and step_index < coarse_od_matrix.shape[0]:
-            row["coarse_action_sum"] = float(np.sum(coarse_od_matrix[step_index]))
-        if policy_residual_matrix.ndim == 2 and step_index < policy_residual_matrix.shape[0]:
-            row["policy_residual_abs_mean"] = float(np.mean(np.abs(policy_residual_matrix[step_index])))
         rows.append(row)
     return tuple(rows)
-
-
-LFP_DIRECTION_DIAGNOSTIC_KEYS = [
-    "mean_link_flow_propagation_guidance_abs",
-]
-
-
-def append_lfp_direction_diagnostic_csv(path: Path, row: dict[str, Any]) -> None:
-    global _LFP_DIRECTION_DIAGNOSTIC_CSV_LOGGING_FAILED
-    if _LFP_DIRECTION_DIAGNOSTIC_CSV_LOGGING_FAILED:
-        return
-    fieldnames = [
-        "update",
-        "completed_episodes",
-        "collected_timesteps",
-        *LFP_DIRECTION_DIAGNOSTIC_KEYS,
-    ]
-    try:
-        _append_csv_rows(path, fieldnames, [row])
-    except OSError as exc:
-        _LFP_DIRECTION_DIAGNOSTIC_CSV_LOGGING_FAILED = True
-        print(
-            f"[warning] lfp_direction_diagnostic.csv logging disabled after write failure at {path}: {exc}",
-            flush=True,
-        )
 
 
 def evaluate_policy_on_split(
@@ -820,18 +788,7 @@ def build_policy_model(
     return model
 
 
-def coarse_residual_policy_enabled(params: dict[str, Any] | None = None) -> bool:
-    source = Config.RL_RUNTIME_PARAMS if params is None else params
-    return bool(source.get("coarse_residual_policy_enabled", False))
-
-
-def resolve_policy_action_bounds(params: dict[str, Any] | None = None) -> tuple[float, float]:
-    source = Config.RL_RUNTIME_PARAMS if params is None else params
-    if coarse_residual_policy_enabled(source):
-        residual_high = float(source.get("residual_action_high", max((Config.ACTION_HIGH - Config.ACTION_LOW) * 0.15, 1.0)))
-        if residual_high <= 0.0:
-            raise ValueError("residual_action_high must be positive.")
-        return -residual_high, residual_high
+def resolve_policy_action_bounds() -> tuple[float, float]:
     return float(Config.ACTION_LOW), float(Config.ACTION_HIGH)
 
 
@@ -840,8 +797,6 @@ def resolve_observation_dim(scenario_dataset: Any, params: dict[str, Any] | None
     observation_dim = int(1 + 3 * scenario_dataset.num_links)
     if bool(source.get("include_target_observation_state", False)):
         observation_dim += int(scenario_dataset.num_observations)
-    if coarse_residual_policy_enabled(source) and bool(source.get("include_coarse_od_state", True)):
-        observation_dim += int(scenario_dataset.num_od)
     return observation_dim
 
 
@@ -917,7 +872,7 @@ def load_model_checkpoint(
     checkpoint_action_low = checkpoint.get("policy_action_low")
     checkpoint_action_high = checkpoint.get("policy_action_high")
     if checkpoint_action_low is None or checkpoint_action_high is None:
-        checkpoint_action_low, checkpoint_action_high = resolve_policy_action_bounds(checkpoint_runtime_params)
+        checkpoint_action_low, checkpoint_action_high = resolve_policy_action_bounds()
     model = build_policy_model(
         observation_dim=observation_dim,
         action_dim=int(len(get_default_od_pairs(Config.NETWORK_NAME))),
@@ -1137,24 +1092,6 @@ def collect_episode_batch(
             link_flow_propagation_guidance = guidance.link_flow_propagation_guidance
             link_flow_propagation_guidance_stats = guidance.stats
             horizon = int(link_flow_propagation_guidance.shape[0])
-            if coarse_residual_policy_enabled():
-                estimated_od = np.asarray(final_info.get("estimated_od_matrix", []), dtype=np.float32)[:horizon]
-                if estimated_od.shape == link_flow_propagation_guidance.shape:
-                    lower_blocked = estimated_od <= float(Config.ACTION_LOW) + 1e-6
-                    upper_blocked = estimated_od >= float(Config.ACTION_HIGH) - 1e-6
-                    blocked_direction = (
-                        (lower_blocked & (link_flow_propagation_guidance < 0.0))
-                        | (upper_blocked & (link_flow_propagation_guidance > 0.0))
-                    )
-                    if np.any(blocked_direction):
-                        link_flow_propagation_guidance = link_flow_propagation_guidance.copy()
-                        link_flow_propagation_guidance[blocked_direction] = 0.0
-                    link_flow_propagation_guidance_stats = {
-                        **link_flow_propagation_guidance_stats,
-                        "lfp_information_abs_mean": float(np.mean(np.abs(link_flow_propagation_guidance))),
-                        "lfp_information_abs_max": float(np.max(np.abs(link_flow_propagation_guidance))),
-                        "residual_clip_masked_fraction": float(np.mean(blocked_direction)),
-                    }
         else:
             horizon = min(
                 len(rewards[env_index]),
@@ -1301,6 +1238,7 @@ def train_on_rollouts(
     entropy_losses: list[float] = []
     policy_gradient_losses: list[float] = []
     global_value_losses: list[float] = []
+    gradient_norms: list[float] = []
     clip_fractions: list[float] = []
     approx_kl_divs: list[float] = []
     advantage_abs_means: list[float] = []
@@ -1340,10 +1278,8 @@ def train_on_rollouts(
             ratio = torch.exp(outputs["log_prob_dims"] - old_log_prob_batch)
             clipped_ratio = torch.clamp(ratio, 1.0 - clip_range, 1.0 + clip_range)
 
-            # The global PPO signal is scalar per action vector. Averaging it
-            # over all OD dimensions makes vanilla PPO updates vanish on the
-            # 930-dimensional Melbourne OD action space, so aggregate the
-            # factorized surrogate across OD dimensions before batch averaging.
+            # Sum the coordinate-wise surrogate, then average over observations.
+            # Both variants use this factorized objective and the same reduction.
             global_advantage_dims = global_advantage_batch.unsqueeze(-1)
             global_policy_loss_1 = ratio * global_advantage_dims
             global_policy_loss_2 = clipped_ratio * global_advantage_dims
@@ -1376,7 +1312,10 @@ def train_on_rollouts(
 
             optimizer.zero_grad()
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
+            gradient_norm = torch.nn.utils.clip_grad_norm_(
+                model.parameters(), max_grad_norm, error_if_nonfinite=True
+            )
+            gradient_norms.append(float(gradient_norm.item()))
             optimizer.step()
 
             policy_gradient_losses.append(float(policy_loss.item()))
@@ -1435,6 +1374,8 @@ def train_on_rollouts(
         "entropy_loss": float(np.mean(entropy_losses)) if entropy_losses else float("nan"),
         "policy_gradient_loss": mean_policy_gradient_loss,
         "global_value_loss": mean_global_value_loss,
+        "gradient_norm_mean": float(np.mean(gradient_norms)) if gradient_norms else 0.0,
+        "gradient_norm_max": float(np.max(gradient_norms)) if gradient_norms else 0.0,
         "approx_kl": float(np.mean(approx_kl_divs)) if approx_kl_divs else float("nan"),
         "clip_fraction": float(np.mean(clip_fractions)) if clip_fractions else float("nan"),
         "loss": float(loss.item()),
@@ -1679,7 +1620,6 @@ def run_one_trial(
                 Config.FINAL_MODEL_NAME,
                 Config.LATEST_MODEL_NAME,
                 "train_metrics.csv",
-                "lfp_direction_diagnostics.csv",
             )
         ),
     ):
@@ -1741,9 +1681,6 @@ def run_one_trial(
         json.dumps(config_snapshot, indent=2),
         encoding="utf-8",
     )
-    lfp_direction_diagnostic_csv_path = trial_result_dir / "lfp_direction_diagnostics.csv"
-    if not resume_training and lfp_direction_diagnostic_csv_path.exists():
-        lfp_direction_diagnostic_csv_path.unlink()
 
     seed = int(seed_override) if seed_override is not None else 1000 + trial_index
     set_global_seed(seed)
@@ -1859,15 +1796,6 @@ def run_one_trial(
         train_metric_row = dict(last_train_metrics)
         train_metric_rows.append(train_metric_row)
         append_train_metrics_csv(train_metrics_csv_path, train_metric_row)
-        append_lfp_direction_diagnostic_csv(
-            lfp_direction_diagnostic_csv_path,
-            {
-                "update": int(update_count),
-                "completed_episodes": int(len(logger.rows)),
-                "collected_timesteps": int(total_timesteps_collected),
-                **last_train_metrics,
-            },
-        )
 
         if (
             len(logger.rows) >= last_latest_checkpoint_episode + LATEST_CHECKPOINT_EPISODE_INTERVAL
@@ -2152,6 +2080,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
 
 

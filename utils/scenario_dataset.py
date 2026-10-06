@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
@@ -15,11 +14,13 @@ import numpy as np
 DATASET_VERSION = 2
 SPLIT_DATASET_FILENAMES = {
     "train": "train_dataset.npz",
+    "validation": "validation_dataset.npz",
     "test": "test_dataset.npz",
 }
-VALID_SPLITS = ("train", "test")
+VALID_SPLITS = ("train", "validation", "test")
 _SPLIT_SEED_OFFSETS = {
     "train": 100_000_000,
+    "validation": 300_000_000,
     "test": 200_000_000,
 }
 
@@ -44,8 +45,6 @@ class ScenarioSample:
 
 
 def default_scenario_dataset_dir(project_dir: Path, network_name: str) -> Path:
-    # The publishable split datasets live directly under data/.
-    # network_name is kept in the signature for existing launcher compatibility.
     return Path(project_dir).resolve() / "data"
 
 
@@ -214,7 +213,7 @@ class ScenarioDataset:
             )
         self.manifest = dict(manifest)
         self.network_name = str(manifest["network_name"])
-        self._validate_manifest_scientific_status()
+        self._validate_observation_operator()
         self.link_labels = tuple(str(label) for label in manifest["link_labels"])
         self.od_pairs = tuple(tuple(int(value) for value in pair) for pair in manifest["od_pairs"])
         self.od_labels = tuple(str(label) for label in manifest["od_labels"])
@@ -255,28 +254,16 @@ class ScenarioDataset:
             for split_name, split_items in manifest["splits"].items()
         }
 
-    def _validate_manifest_scientific_status(self) -> None:
-        if str(self.network_name).strip().lower() != "melbourne_scats":
-            return
-        generation_settings = dict(self.manifest.get("generation_settings", {}))
-        direction_mapping_status = str(generation_settings.get("direction_mapping_status", "")).strip().lower()
-        link_flow_method = str(generation_settings.get("link_flow_method", "")).strip().lower()
-        uses_legacy_forward_only_mapping = (
-            "forward dnl link" in link_flow_method
-            or "reverse links remain unobserved" in link_flow_method
-            or direction_mapping_status in {"legacy_forward_only", "invalid_forward_only_legacy"}
-        )
-        if not uses_legacy_forward_only_mapping:
-            return
-        allow_legacy = str(os.environ.get("DODE_ALLOW_UNVERIFIED_MELBOURNE_SCATS", "")).strip().lower()
-        if allow_legacy in {"1", "true", "yes", "y"}:
-            return
-        raise ValueError(
-            "This Melbourne SCATS dataset uses the invalid legacy forward-only site-to-link mapping. "
-            "Do not use it for training/evaluation. Rebuild data from SCATS detector configuration "
-            "sheets and a reviewed detector-to-DNL-link assignment table, or set "
-            "DODE_ALLOW_UNVERIFIED_MELBOURNE_SCATS=1 only for forensic inspection of the old artifacts."
-        )
+    def _validate_observation_operator(self) -> None:
+        settings = dict(self.manifest.get("generation_settings", {}))
+        operator = settings.get("target_observation_operator")
+        if operator != "representative_detector_per_observed_dnl_link":
+            raise ValueError(
+                "Dataset observations must use one representative detector per observed link."
+            )
+        indices = self.manifest.get("observed_link_indices", [])
+        if settings.get("selected_detector_count") != len(indices):
+            raise ValueError("Dataset detector count does not match observed_link_indices.")
 
     def _load_split_dataset(self, split_path: Path, expected_split: str | None = None) -> dict[str, Any]:
         with np.load(split_path, allow_pickle=False) as payload:
@@ -291,7 +278,6 @@ class ScenarioDataset:
             if "target_observations" not in payload:
                 raise ValueError(
                     f"Split scenario dataset {split_path} is missing target_observations. "
-                    "The active data contract does not allow full-link target fallback."
                 )
             target_observations = np.asarray(payload["target_observations"], dtype=np.float32)
             if target_observations.shape[0] != len(scenario_ids):
@@ -369,7 +355,6 @@ class ScenarioDataset:
             if "target_observations" not in payload:
                 raise ValueError(
                     f"Scenario sample {path} is missing target_observations. "
-                    "The active data contract does not allow full-link target fallback."
                 )
             target_observations = np.asarray(payload["target_observations"], dtype=np.float32)
         return ScenarioSample(
